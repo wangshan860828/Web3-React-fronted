@@ -12,6 +12,8 @@ import {
 import { useState } from "react";
 
 export default function GanacheRpc() {
+    const [signer1, setSigner1] = useState<ethers.Signer | null>(null)
+    const [signer2, setSigner2] = useState<ethers.Signer | null>(null)
     const [signer1Address, setSigner1Address] = useState<string>('')
     const [signer1Balance, setSigner1Balance] = useState<string>('')
     const [signer2Address, setSigner2Address] = useState<string>('')
@@ -23,9 +25,9 @@ export default function GanacheRpc() {
         const url = 'http://localhost:7545';
         const provider = new ethers.JsonRpcProvider(url);
         setBlockNumber(await provider.getBlockNumber())
-
         // 通过签名者获取账户写权限
         const signer1 = await provider.getSigner();
+        setSigner1(signer1)
         console.log('signer1:', signer1)
         console.log('signer1 address:', await signer1.getAddress())
         setSigner1Address(await signer1.getAddress())
@@ -35,6 +37,7 @@ export default function GanacheRpc() {
         
         // 通过签名者获取指定账户写权限（如 Hardhat、Ganache）时）
         const signer2 = await provider.getSigner('0x738c09aeC3BA35249f0B181373018d49Ee61dC18');
+        setSigner2(signer2)
         console.log('signer2:', signer2)
         console.log('signer2 address:', await signer2.getAddress())
         setSigner2Address(await signer2.getAddress())
@@ -43,10 +46,21 @@ export default function GanacheRpc() {
         setSigner2Balance(ethers.formatEther(balance2))
     }
 
+    const handleSendTransaction = async () => {
+        const tx = await signer1?.sendTransaction({
+            to: signer2Address,
+            value: ethers.parseEther('1'),
+        })
+        console.log('tx:', tx)
+        const receipt = await tx?.wait()
+        console.log('tx receipt:', receipt)
+    }
+
     return (
         <div>
             <h1>GanacheRpc</h1>
             <Button onClick={connectGanache}>连接Ganache</Button>
+            <Button onClick={handleSendTransaction}>发送交易</Button>
             <Card>
                 <CardHeader>
                     <CardTitle>Ganache账户信息</CardTitle>
