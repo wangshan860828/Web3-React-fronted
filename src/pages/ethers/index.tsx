@@ -23,10 +23,10 @@ export default function Ethers() {
 
      const handleChainChanged = async (_chainId: string) => {
         console.log(`handleChainChanged: ${_chainId}`)
-        const provider1 = new ethers.BrowserProvider(window.ethereum)
-        const networkInfo = await provider1.getNetwork()
-        setChainId(Number(networkInfo.chainId))
-        setNetwork(networkInfo.name)
+        // const provider1 = new ethers.BrowserProvider(window.ethereum)
+        // const networkInfo = await provider1.getNetwork()
+        // setChainId(Number(networkInfo.chainId))
+        // setNetwork(networkInfo.name)
     }
 
     const handleAccountsChanged = async (accounts: string[]) => {
