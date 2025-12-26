@@ -57,13 +57,8 @@ export default function InteractContract() {
     const getTotalGasFee = async () => {
         try {
             const feeData = await provider.getFeeData();
-            console.log('feeData:', feeData)
-            console.log('gasPrice (wei):', feeData.gasPrice)
-            console.log('gasPrice (gwei):', ethers.formatUnits(feeData.gasPrice || 0n, 'gwei'))
             const gasLimit = await contract.fund.estimateGas({ value: ethers.parseEther('1') });
-            console.log('gasLimit:', gasLimit)
             const totalGasFee = feeData.gasPrice ? feeData.gasPrice * gasLimit : 0n;
-            console.log('总 gas 费:', ethers.formatUnits(totalGasFee, 'gwei'), 'gwei')
             setTotalGasFee(ethers.formatUnits(totalGasFee, 'gwei'))
         } catch (err) {
             console.error('获取总 gas 费失败:', err)
@@ -75,7 +70,6 @@ export default function InteractContract() {
         contract.fund({ value: ethers.parseEther('1') })
             .then(async (txResponse) => {
                 const receipt = await txResponse.wait();
-                console.log('receipt:', receipt)
                 if (receipt.status === 1) {
                     setIsTranfer(true)
                     getTotalGasFee()
@@ -91,9 +85,7 @@ export default function InteractContract() {
     const handleFund2 = async () => {
         //用 fund 方法转账 1 ETH 到合约
         const txResponse = await contractWithSigner2.fund({ value: ethers.parseEther('1') });
-        console.log('txResponse:', txResponse)
         const receipt = await txResponse.wait();
-        console.log('receipt:', receipt)
         if (receipt.status === 1) {
             setIsTranfer(true)
             getTotalGasFee() 
