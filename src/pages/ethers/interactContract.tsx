@@ -134,7 +134,7 @@ export default function InteractContract() {
             .then(async (txResponse) => {
                 const receipt = await txResponse.wait();
                 if (receipt.status === 1) {
-                    setIsTranfer(true)
+                    setIsTranfer(prev => !prev) // 每次反转状态以触发更新
                     getTotalGasFee()
                 } else {
                     console.log('交易失败')
@@ -150,7 +150,7 @@ export default function InteractContract() {
             const txResponse = await contractWithSigner2.fund({ value: ethers.parseEther('1') });
             const receipt = await txResponse.wait();
             if (receipt.status === 1) {
-                setIsTranfer(true)
+                setIsTranfer(prev => !prev) // 每次反转状态以触发更新
                 getTotalGasFee() 
             } else {
                 console.log('交易失败')
