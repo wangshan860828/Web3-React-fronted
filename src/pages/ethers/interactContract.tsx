@@ -70,29 +70,37 @@ export default function InteractContract() {
         }
         const filter = contractEventProvider.filters.Funded()
         console.log('useEffect filter:', filter)
-        
-        const handleFundEvent = (from: string, amount: bigint, event: any) => {
-            console.log(`Fund event from ${from} with amount ${amount}`)
-            console.log('区块号:', event.blockNumber)
-            console.log('交易哈希:', event.transactionHash)
-            setIsTranfer(true)
-            
-            // 保存事件到状态
+
+        // 回调函数只接收一个参数：event 原始对象（不再拆分 funder/amount）
+        const handleFundEvent = (event: any) => {
+            try {
+                // 关键：从 event.args 中获取参数（与 ABI 中名称对应，无关顺序）
+                console.log('event log:', event.log)
+                const { funder, amount } = event.args; 
+                console.log(`Fund event from ${funder} with amount ${amount}`); // 此时会正常显示：地址字符串 + bigint
+                console.log('区块号:', event.log.blockNumber);
+                console.log('交易哈希:', event.log.transactionHash);
+
+            // 保存事件到状态（逻辑不变）
             setFundEvents(prev => [
                 ...prev,
                 {
-                    from,
-                    amount: ethers.formatEther(amount),
-                    blockNumber: event.blockNumber,
-                    transactionHash: event.transactionHash
+                    from: funder,
+                    amount: ethers.formatEther(amount), // 转为 ETH 格式
+                    blockNumber: event.log.blockNumber,
+                    transactionHash: event.log.transactionHash
                 }
-            ])
+            ]);
+        } catch (err) {
+            console.error("处理 Funded 事件失败：", err);
         }
-        
-        contractEventProvider.on(filter, handleFundEvent)
+        };
+
+        // 监听和取消监听逻辑不变（过滤器有效，继续使用）
+        contractEventProvider.on(filter, handleFundEvent);
         return () => {
-            contractEventProvider.off(filter, handleFundEvent)
-        }
+        contractEventProvider.off(filter, handleFundEvent);
+        };
     }, [currentState])
 
     useEffect(() => {
@@ -157,9 +165,9 @@ export default function InteractContract() {
             const txResponse = await contractEventSigner1.fund({ value: ethers.parseEther('1') });
             const receipt = await txResponse.wait();
             if (receipt.status === 1) {
-                console.log('交易成功')
+                console.log('handleFund3交易成功')
             } else {
-                console.log('交易失败')
+                console.log('handleFund3交易失败')
             }
         } catch (err) {
             console.error('handleFund3 error:', err)
