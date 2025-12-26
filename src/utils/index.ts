@@ -1,4 +1,4 @@
-import { keccak256, toUtf8Bytes} from 'ethers';
+import { keccak256, toUtf8Bytes, ethers } from 'ethers';
 
 // 验证以太坊地址是否有效
 /* EIP-55校验和校验规则：
@@ -42,7 +42,8 @@ const sendWithGasRetry = async (contract: any, method: string, params: any[], re
         console.log('gasLimit:', gasLimit)
         // 当前网络 gas 单价（wei）
         const gasPrice = await contract.runner.getGasPrice(); 
-        console.log('gasPrice:', gasPrice)
+        console.log('gasPrice (wei):', gasPrice)
+        console.log('gasPrice (gwei):', ethers.formatUnits(gasPrice, 'gwei'))
         const tx = await contract[method](...params, 
             { 
                 //总的 gas 费（wei） = gas数量 * gas单价
