@@ -1,11 +1,19 @@
-import {ethers} from 'ethers'
+import { ethers } from 'ethers'
 import FundMeArtifact from '../../contracts/FundMe.json'
-// import { sendWithGasRetry } from '../../utils/index'
 import { Button } from "@/components/ui/button"
 import { useState, useEffect } from 'react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+
 // 合约ABI和地址
 const MY_CONTRACT_ABI = FundMeArtifact.abi
-const MY_CONTRACT_ADDRESS = '0x87d0B27FC2Fb2105d4894Dd3626558Ecfc8c20e8'//FundMeArtifact.address //合约部署的地址
+const MY_CONTRACT_ADDRESS = '0x87d0B27FC2Fb2105d4894Dd3626558Ecfc8c20e8'
 // Ganache 测试账号
 const MY_GANACHE_ACCOUNT1 = '0x5FBafb59B029e2d2111cEa5D375d11B6E8b53B02'
 const MY_GANACHE_ACCOUNT2 = '0x738c09aeC3BA35249f0B181373018d49Ee61dC18'
@@ -18,16 +26,33 @@ const signer2 = new ethers.Wallet(GANACHE_PRIVATE_KEY2, provider);
 const contract = new ethers.Contract(MY_CONTRACT_ADDRESS, MY_CONTRACT_ABI, signer1);
 const contractWithSigner2 = contract.connect(signer2) as ethers.Contract;
 
+// 合约的监听
+const MY_CONTRACT_EVENT_ADDRESS = '0x0C1b3954356A92D88AD1bC10b68E629540afBde6'
+const contractEventProvider = new ethers.Contract(MY_CONTRACT_EVENT_ADDRESS, MY_CONTRACT_ABI, provider);
+const contractEventSigner1 = new ethers.Contract(MY_CONTRACT_EVENT_ADDRESS, MY_CONTRACT_ABI, signer1);
+
 export default function InteractContract() {
     const [balance1, setBalance1] = useState<string>('')
     const [balance2, setBalance2] = useState<string>('')
     const [contractBalance, setContractBalance] = useState<string>('')
     const [isTranfer, setIsTranfer] = useState<boolean>(false)
     const [totalGasFee, setTotalGasFee] = useState<string>('')
-
+    const [fundEvents, setFundEvents] = useState<Array<{ from: string; amount: string; blockNumber: number; transactionHash: string }>>([])
+    const [currentState, setCurrentState] =  useState<number>(1)
+    const [activeTab, setActiveTab] = useState<string>('contract-interaction')
+    
+    // 更新 currentState 当 tab 切换
+    const handleTabChange = (value: string) => {
+        setActiveTab(value)
+        if (value === 'contract-interaction') {
+            setCurrentState(1)
+        } else if (value === 'event-listening') {
+            setCurrentState(2)
+        }
+    }
+    
     const getAccountsBalance = async () => {
         try {
-            // 调用 getBalance 方法
             const balance1 = await contract.getBalance(MY_GANACHE_ACCOUNT1);
             setBalance1(ethers.formatEther(balance1))
 
@@ -35,11 +60,43 @@ export default function InteractContract() {
             setBalance2(ethers.formatEther(balance2))
         } catch (err) {
             console.error('获取账户余额失败:', err)
-            // setError('获取账户余额失败')
         }
     }
 
     useEffect(() => {
+        console.log('useEffect currentState:', currentState)
+        if (currentState !== 2) {
+            return
+        }
+        const filter = contractEventProvider.filters.Funded()
+        console.log('useEffect filter:', filter)
+        
+        const handleFundEvent = (from: string, amount: bigint, event: any) => {
+            console.log(`Fund event from ${from} with amount ${amount}`)
+            console.log('区块号:', event.blockNumber)
+            console.log('交易哈希:', event.transactionHash)
+            setIsTranfer(true)
+            
+            // 保存事件到状态
+            setFundEvents(prev => [
+                ...prev,
+                {
+                    from,
+                    amount: ethers.formatEther(amount),
+                    blockNumber: event.blockNumber,
+                    transactionHash: event.transactionHash
+                }
+            ])
+        }
+        
+        contractEventProvider.on(filter, handleFundEvent)
+        return () => {
+            contractEventProvider.off(filter, handleFundEvent)
+        }
+    }, [currentState])
+
+    useEffect(() => {
+        console.log('useEffect isTranfer:', isTranfer)
         async function getAllBalance() {
             try {
                 const balance = await provider.getBalance(MY_CONTRACT_ADDRESS);
@@ -47,7 +104,6 @@ export default function InteractContract() {
                 getAccountsBalance()          
             } catch (err) {
                 console.error('获取合约余额失败:', err)
-                // setError('获取合约余额失败')
             }
         }
         getAllBalance()
@@ -66,7 +122,6 @@ export default function InteractContract() {
     }
 
     const handleFund = () => {
-        //用 fund 方法转账 1 ETH 到合约
         contract.fund({ value: ethers.parseEther('1') })
             .then(async (txResponse) => {
                 const receipt = await txResponse.wait();
@@ -83,30 +138,98 @@ export default function InteractContract() {
     }
 
     const handleFund2 = async () => {
-        //用 fund 方法转账 1 ETH 到合约
-        const txResponse = await contractWithSigner2.fund({ value: ethers.parseEther('1') });
-        const receipt = await txResponse.wait();
-        if (receipt.status === 1) {
-            setIsTranfer(true)
-            getTotalGasFee() 
-        } else {
-            console.log('交易失败')
-        }  
+        try {
+            const txResponse = await contractWithSigner2.fund({ value: ethers.parseEther('1') });
+            const receipt = await txResponse.wait();
+            if (receipt.status === 1) {
+                setIsTranfer(true)
+                getTotalGasFee() 
+            } else {
+                console.log('交易失败')
+            }
+        } catch (err) {
+            console.error('handleFund2 error:', err)
+        }
+    }
+
+    const handleFund3 = async () => {
+        try {
+            const txResponse = await contractEventSigner1.fund({ value: ethers.parseEther('1') });
+            const receipt = await txResponse.wait();
+            if (receipt.status === 1) {
+                console.log('交易成功')
+            } else {
+                console.log('交易失败')
+            }
+        } catch (err) {
+            console.error('handleFund3 error:', err)
+        }
     }
 
     return (
-        <div>
-            <h1>Interact Contract</h1>
-            {totalGasFee && <div style={{color: 'red'}}>总 gas 费: {totalGasFee}</div>}
-            <div>
-                <p>账户1余额：{balance1}</p>
-                <p>账户2余额：{balance2}</p>
-            </div><br />
-            <Button onClick={handleFund}>Fund转账1</Button>
-            <Button onClick={handleFund2} style={{marginLeft: '10px'}}>Fund转账2</Button>
-            <Button onClick={getTotalGasFee} style={{marginLeft: '10px'}}>计算Gas费</Button>
-            <p>合约余额：{contractBalance}</p>
+        <div className="min-h-screen p-6">
+            <h1 className="text-3xl font-bold mb-6">Interact Contract</h1>
+            <p>当前状态: {currentState}</p> {/* 可选：显示当前状态 */}
             
+            <Tabs defaultValue="contract-interaction" value={activeTab} onValueChange={handleTabChange} className="w-full">
+                <TabsList className="mb-6">
+                    <TabsTrigger value="contract-interaction">合约交互</TabsTrigger>
+                    <TabsTrigger value="event-listening">事件监听</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="contract-interaction">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>合约转账与余额查询</CardTitle>
+                            <CardDescription>测试 Fund 方法转账功能和账户余额查询</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            {totalGasFee && <div style={{color: 'red', marginBottom: '16px'}}>总 gas 费: {totalGasFee} GWEI</div>}
+                            
+                            <div className="mb-4">
+                                <p className="mb-2">账户1余额：{balance1} ETH</p>
+                                <p className="mb-2">账户2余额：{balance2} ETH</p>
+                                <p className="mb-4">合约余额：{contractBalance} ETH</p>
+                            </div>
+                            
+                            <div className="flex gap-4">
+                                <Button onClick={handleFund}>Fund转账1</Button>
+                                <Button onClick={handleFund2}>Fund转账2</Button>
+                                <Button onClick={getTotalGasFee}>计算Gas费</Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+                
+                <TabsContent value="event-listening">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Fund 事件监听</CardTitle>
+                            <CardDescription>实时监听合约的 Funded 事件</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <Button onClick={handleFund3}>转账</Button>
+                            <div className="mb-4">
+                                <h3 className="text-lg font-semibold mb-2">已触发的 Fund 事件：</h3>
+                                {fundEvents.length === 0 ? (
+                                    <p className="text-muted-foreground">暂无事件记录</p>
+                                ) : (
+                                    <div className="space-y-4 max-h-[400px] overflow-y-auto">
+                                        {fundEvents.map((event, index) => (
+                                            <div key={index} className="border p-4 rounded-lg">
+                                                <p className="mb-1">From: {event.from}</p>
+                                                <p className="mb-1">Amount: {event.amount} ETH</p>
+                                                <p className="mb-1">Block Number: {event.blockNumber}</p>
+                                                <p className="mb-1">Transaction Hash: {event.transactionHash}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+            </Tabs>
         </div>
     )
 }
