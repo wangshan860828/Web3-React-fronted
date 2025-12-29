@@ -72,6 +72,7 @@ export default function InteractContract() {
         console.log('useEffect filter:', filter)
 
         // 回调函数只接收一个参数：event 原始对象（不再拆分 funder/amount）
+        //eslint-disable-next-line @typescript-eslint/no-explicit-any
         const handleFundEvent = (event: any) => {
             try {
                 // 关键：从 event.args 中获取参数（与 ABI 中名称对应，无关顺序）
