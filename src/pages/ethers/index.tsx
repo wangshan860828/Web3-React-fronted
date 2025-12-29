@@ -42,10 +42,8 @@ export default function Ethers() {
     
     useEffect(() => {
         return () => {
-            if (window.ethereum) {
-                window.ethereum.removeListener("chainChanged", handleChainChanged)
-                window.ethereum.removeListener('accountsChanged', handleAccountsChanged)
-            }
+            window.ethereum.removeListener("chainChanged", handleChainChanged)
+            window.ethereum.removeListener('accountsChanged', handleAccountsChanged)
         }
     }, [])
     const connectWallet = async () => {
