@@ -24,6 +24,21 @@ export function useWallet() {
         walletType: '',
     });
 
+    //断开连接
+    const disconnect = () => {
+        console.log('disconnect function 断开连接')
+        setState(prev => ({
+            ...prev,
+            account: null,
+            isConnected: false,
+            signer: null,
+            chainId: null,
+            chainName: null,
+            balance: null,
+            walletType: '',
+        }))
+    }
+
     //页面刷新时，自动重连钱包
     useEffect(() => {
         console.log('useEffect refreshConnect 自动重连钱包')
@@ -52,6 +67,7 @@ export function useWallet() {
                     }))
                 } else {
                     console.log('没有检测到已连接的账号')
+                    disconnect();
                 }
             } catch (error) {
                 console.log('refreshConnect error:', error)
@@ -78,30 +94,12 @@ export function useWallet() {
                 refreshConnect(accounts[0])
             } else {
                 // 账号为空时断开连接
-                setState(prev => ({
-                    ...prev,
-                    account: null,
-                    isConnected: false,
-                    signer: null,
-                    chainId: null,
-                    chainName: null,
-                    balance: null,
-                    walletType: '',
-                }))
+                disconnect();
             }
         }
         const handleDisconnect = () => {
             console.log('❌ handleDisconnect 事件触发! 钱包已断开连接。')
-            setState(prev => ({
-                ...prev,
-                account: null,
-                isConnected: false,
-                signer: null,
-                chainId: null,
-                chainName: null,
-                balance: null,
-                walletType: '',
-            }))
+            disconnect();
         }
         const ethereum = (window as any).ethereum;
         if (ethereum) {
@@ -153,21 +151,6 @@ export function useWallet() {
                 console.log('connect error:', error)
             }
         }
-    }
-
-    //断开连接
-    const disconnect = () => {
-        console.log('disconnect function 断开连接')
-        setState(prev => ({
-            ...prev,
-            account: null,
-            isConnected: false,
-            signer: null,
-            chainId: null,
-            chainName: null,
-            balance: null,
-            walletType: '',
-        }))
     }
 
     return { state, connect, disconnect };
