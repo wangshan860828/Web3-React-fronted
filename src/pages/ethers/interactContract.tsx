@@ -176,60 +176,73 @@ export default function InteractContract() {
     }
 
     return (
-        <div className="min-h-screen p-6">
-            <h1 className="text-3xl font-bold mb-6">Interact Contract</h1>
-            <p>当前状态: {currentState}</p> {/* 可选：显示当前状态 */}
+        <div className="min-h-screen p-6 bg-linear-to-br from-slate-50 to-indigo-50">
+            <h1 className="text-3xl font-bold mb-6 text-center bg-linear-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Interact Contract</h1>
+            <p className="text-center text-muted-foreground mb-8">当前状态: {currentState}</p> {/* 可选：显示当前状态 */}
             
-            <Tabs defaultValue="contract-interaction" value={activeTab} onValueChange={handleTabChange} className="w-full">
-                <TabsList className="mb-6">
-                    <TabsTrigger value="contract-interaction">合约交互</TabsTrigger>
-                    <TabsTrigger value="event-listening">事件监听</TabsTrigger>
+            <Tabs defaultValue="contract-interaction" value={activeTab} onValueChange={handleTabChange} className="w-full max-w-4xl mx-auto">
+                <TabsList className="mb-6 w-full bg-slate-200 p-1 rounded-lg">
+                    <TabsTrigger 
+                        value="contract-interaction" 
+                        className="w-1/2 h-10 text-sm font-medium rounded-md transition-all duration-200 hover:bg-slate-300 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                    >
+                        合约交互
+                    </TabsTrigger>
+                    <TabsTrigger 
+                        value="event-listening" 
+                        className="w-1/2 h-10 text-sm font-medium rounded-md transition-all duration-200 hover:bg-slate-300 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                    >
+                        事件监听
+                    </TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="contract-interaction">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>合约转账与余额查询</CardTitle>
-                            <CardDescription>测试 Fund 方法转账功能和账户余额查询</CardDescription>
+                    <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-0 rounded-xl overflow-hidden">
+                        <CardHeader className="bg-linear-to-r from-indigo-50 to-purple-50 border-b border-slate-100">
+                            <CardTitle className="text-xl md:text-2xl text-indigo-600">合约转账与余额查询</CardTitle>
+                            <CardDescription className="text-slate-600">测试 Fund 方法转账功能和账户余额查询</CardDescription>
                         </CardHeader>
-                        <CardContent>
-                            {totalGasFee && <div style={{color: 'red', marginBottom: '16px'}}>总 gas 费: {totalGasFee} GWEI</div>}
+                        <CardContent className="p-6 md:p-8">
+                            {totalGasFee && <div className="bg-orange-50 border border-orange-200 text-orange-800 rounded-lg p-4 mb-6">
+                                <strong>总 gas 费:</strong> {totalGasFee} GWEI
+                            </div>}
                             
-                            <div className="mb-4">
-                                <p className="mb-2">账户1余额：{balance1} ETH</p>
-                                <p className="mb-2">账户2余额：{balance2} ETH</p>
-                                <p className="mb-4">合约余额：{contractBalance} ETH</p>
+                            <div className="mb-6 p-4 bg-slate-50 rounded-lg">
+                                <p className="mb-2 font-medium text-slate-700">账户1余额：<span className="text-indigo-600 font-bold">{balance1}</span> ETH</p>
+                                <p className="mb-2 font-medium text-slate-700">账户2余额：<span className="text-purple-600 font-bold">{balance2}</span> ETH</p>
+                                <p className="mb-4 font-medium text-slate-700">合约余额：<span className="text-emerald-600 font-bold">{contractBalance}</span> ETH</p>
                             </div>
-                            
-                            <div className="flex gap-4">
-                                <Button onClick={handleFund}>Fund转账1</Button>
-                                <Button onClick={handleFund2}>Fund转账2</Button>
-                                <Button onClick={getTotalGasFee}>计算Gas费</Button>
+                            <div className="flex flex-wrap gap-3">
+                                <Button className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg" onClick={handleFund}>Fund转账1</Button>
+                                <Button className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg" onClick={handleFund2}>Fund转账2</Button>
+                                <Button className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg" onClick={getTotalGasFee}>计算Gas费</Button>
                             </div>
                         </CardContent>
                     </Card>
                 </TabsContent>
                 
                 <TabsContent value="event-listening">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Fund 事件监听</CardTitle>
-                            <CardDescription>实时监听合约的 Funded 事件</CardDescription>
+                    <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 border-0 rounded-xl overflow-hidden">
+                        <CardHeader className="bg-linear-to-r from-purple-50 to-pink-50 border-b border-slate-100">
+                            <CardTitle className="text-xl md:text-2xl text-purple-600">Fund 事件监听</CardTitle>
+                            <CardDescription className="text-slate-600">实时监听合约的 Funded 事件</CardDescription>
                         </CardHeader>
-                        <CardContent>
-                            <Button onClick={handleFund3}>转账</Button>
-                            <div className="mb-4">
-                                <h3 className="text-lg font-semibold mb-2">已触发的 Fund 事件：</h3>
+                        <CardContent className="p-6 md:p-8">
+                            <Button className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 mb-4 rounded-lg transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg" onClick={handleFund3}>触发转账事件</Button>
+                            <div className="mb-6">
+                                <h3 className="text-lg font-semibold mb-3 text-slate-700">已触发的 Fund 事件：</h3>
                                 {fundEvents.length === 0 ? (
-                                    <p className="text-muted-foreground">暂无事件记录</p>
+                                    <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-lg p-8 text-center">
+                                        <p className="text-muted-foreground">暂无事件记录</p>
+                                    </div>
                                 ) : (
-                                    <div className="space-y-4 max-h-[400px] overflow-y-auto">
+                                    <div className="space-y-4 max-h-[400px] overflow-y-auto p-4 bg-slate-50 rounded-lg">
                                         {fundEvents.map((event, index) => (
-                                            <div key={index} className="border p-4 rounded-lg">
-                                                <p className="mb-1">From: {event.from}</p>
-                                                <p className="mb-1">Amount: {event.amount} ETH</p>
-                                                <p className="mb-1">Block Number: {event.blockNumber}</p>
-                                                <p className="mb-1">Transaction Hash: {event.transactionHash}</p>
+                                            <div key={index} className="border border-slate-200 rounded-lg p-4 bg-white hover:border-purple-300 hover:shadow-md transition-all duration-200">
+                                                <p className="mb-1 text-sm"><span className="font-semibold text-slate-700">From:</span> <code className="bg-slate-100 px-2 py-1 rounded text-xs">{event.from}</code></p>
+                                                <p className="mb-1 text-sm"><span className="font-semibold text-slate-700">Amount:</span> <span className="text-emerald-600 font-bold">{event.amount}</span> ETH</p>
+                                                <p className="mb-1 text-sm"><span className="font-semibold text-slate-700">Block Number:</span> {event.blockNumber}</p>
+                                                <p className="mb-1 text-sm"><span className="font-semibold text-slate-700">Transaction Hash:</span> <code className="bg-slate-100 px-2 py-1 rounded text-xs break-all">{event.transactionHash}</code></p>
                                             </div>
                                         ))}
                                     </div>

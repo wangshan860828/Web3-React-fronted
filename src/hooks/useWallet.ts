@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 
 // 显式定义状态类型
-interface WalletState {
+export interface WalletState {
   account: string | null;
   chainId: bigint | null;
   chainName: string | null;
